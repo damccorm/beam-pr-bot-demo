@@ -86,6 +86,7 @@ async function processPrReview(
   }
 
   let prState = await stateClient.getPrState(pullNumber);
+  // TODO(damccorm) - also check if the author is a committer, if they are don't auto-assign a committer
   if (await prState.isAnyAssignedReviewerCommitter()) {
     return;
   }
