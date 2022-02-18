@@ -91,7 +91,6 @@ export class PersistentState {
       await exec.exec(`git config user.email ${BOT_NAME}@github.com`);
       await exec.exec("git fetch origin pr-bot-state");
       await exec.exec("git checkout pr-bot-state");
-      await exec.exec("git pull origin pr-bot-state");
     } catch {
       console.log(
         "Couldnt find branch pr-bot-state in origin, trying to create it"
@@ -115,6 +114,7 @@ export class PersistentState {
   }
 
   private async commitStateToRepo() {
+    await exec.exec("git pull origin pr-bot-state");
     await exec.exec("git add state/*");
     await exec.exec('git commit -m "Updating config from bot');
     await exec.exec("git push origin pr-bot-state");
