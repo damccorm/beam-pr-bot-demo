@@ -32,10 +32,6 @@ jobs:
       - run: npm install
         working-directory: 'scripts/ci/pr-bot'
 
-      - run: |
-          pwd
-          ls
-
       # Runs a set of commands using the runners shell
       - run: npm run processPrUpdate
         env:
