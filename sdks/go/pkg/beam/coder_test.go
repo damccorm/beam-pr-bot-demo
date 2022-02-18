@@ -151,7 +151,8 @@ func TestCoders(t *testing.T) {
 		regTestType{[4]int{4, 2, 4, 2}},
 	}
 
-	// TEST - don't merge
+	// TEST - don't merge.
+	// Changed as requested
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("%T", test), func(t *testing.T) {
 			var results []string
