@@ -3,7 +3,7 @@
   "reviewersAssignedForLabels": {
     "go": "damccormasareviewer"
   },
-  "nextAction": "Author",
+  "nextAction": "Reviewers",
   "stopReviewerNotifications": false,
   "remindAfterTestsPass": []
 }
