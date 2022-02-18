@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+// DONT MERGE - demonstrating PR bot
 plugins { id 'org.apache.beam.module' }
 applyGoNature()
 
