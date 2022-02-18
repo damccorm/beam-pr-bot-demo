@@ -187,9 +187,10 @@ async function processNewPrs() {
     }
   );
 
-  openPulls.forEach((pull) => {
-    processPull(pull, reviewerConfig, stateClient);
-  });
+  for (let i = 0; i < openPulls.length; i++) {
+    let pull = openPulls[i];
+    await processPull(pull, reviewerConfig, stateClient);
+  }
 }
 
 processNewPrs();
