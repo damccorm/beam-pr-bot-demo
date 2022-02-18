@@ -181,6 +181,7 @@ async function assignReviewerSet(
         Object.values(prState.reviewersAssignedForLabels)
       )
     );
+    return;
   }
 
   const existingLabels = payload.issue?.labels || payload.pull_request?.labels;
@@ -211,9 +212,6 @@ async function assignReviewerSet(
   await github.addPrComment(
     pullNumber,
     commentStrings.assignReviewer(prState.reviewersAssignedForLabels)
-  );
-  commentStrings.reviewersAlreadyAssigned(
-    Object.values(prState.reviewersAssignedForLabels)
   );
 
   github.nextActionReviewers(pullNumber, existingLabels);
