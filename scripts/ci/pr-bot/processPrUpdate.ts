@@ -23,7 +23,6 @@ const { addPrComment, nextActionReviewers } = require("./shared/githubUtils");
 const { PersistentState } = require("./shared/persistentState");
 const { ReviewerConfig } = require("./shared/reviewerConfig");
 const { PATH_TO_CONFIG_FILE } = require("./shared/constants");
-const path = require("path");
 
 async function areReviewersAssigned(
   pullNumber: number,
@@ -141,6 +140,20 @@ async function processPrUpdate() {
   console.log("Event context:");
   console.log(context);
   const payload = context.payload;
+
+  // TODO(damccorm) - remove this when we roll out to more than go
+  const existingLabels = payload.issue?.labels || payload.pull_request?.labels;
+  let containsGoLabel = false;
+  existingLabels.forEach(label => {
+    if (label.name.toLowerCase() == "Go") {
+      containsGoLabel = true;
+    }
+  });
+  if (!containsGoLabel) {
+    console.log("Does not contain the go label - skipping");
+    return;
+  }
+
   if (!payload.issue?.pull_request && !payload.pull_request) {
     console.log("Issue, not pull request - returning");
     return;
