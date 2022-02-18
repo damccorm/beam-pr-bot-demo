@@ -145,7 +145,7 @@ async function processPrUpdate() {
   const existingLabels = payload.issue?.labels || payload.pull_request?.labels;
   let containsGoLabel = false;
   existingLabels.forEach(label => {
-    if (label.name.toLowerCase() == "Go") {
+    if (label.name.toLowerCase() == "go") {
       containsGoLabel = true;
     }
   });
