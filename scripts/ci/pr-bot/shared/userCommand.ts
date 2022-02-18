@@ -33,6 +33,7 @@ export async function processCommand(
   if (commentAuthor == BOT_NAME) {
     return false;
   }
+  console.log(commentAuthor);
 
   const pullNumber = payload.issue?.number || payload.pull_request?.number;
   commentText = commentText.toLowerCase();
