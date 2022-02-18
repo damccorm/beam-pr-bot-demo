@@ -3,7 +3,7 @@
   "reviewersAssignedForLabels": {
     "go": "dannymccormick3"
   },
-  "nextAction": "Reviewers",
+  "nextAction": "Author",
   "stopReviewerNotifications": false,
   "remindAfterTestsPass": []
 }
