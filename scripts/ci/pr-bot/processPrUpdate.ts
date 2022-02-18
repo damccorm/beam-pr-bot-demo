@@ -172,6 +172,10 @@ async function processPrUpdate() {
     case "pull_request_review_comment":
     case "issue_comment":
       console.log("Processing comment event");
+      if (payload.action != 'created') {
+        console.log('Comment wasnt just created, skipping');
+        return;
+      }
       await processPrComment(payload, stateClient, reviewerConfig);
       break;
     case "pull_request_review":
