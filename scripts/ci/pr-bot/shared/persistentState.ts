@@ -89,6 +89,7 @@ export class PersistentState {
     try {
       await exec.exec(`git config user.name ${BOT_NAME}`);
       await exec.exec(`git config user.email ${BOT_NAME}@github.com`);
+      await exec.exec("git config pull.rebase false");
       await exec.exec("git fetch origin pr-bot-state");
       await exec.exec("git checkout pr-bot-state");
     } catch {
