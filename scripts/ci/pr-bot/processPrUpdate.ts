@@ -22,7 +22,7 @@ const { processCommand } = require("./shared/userCommand");
 const { addPrComment, nextActionReviewers } = require("./shared/githubUtils");
 const { PersistentState } = require("./shared/persistentState");
 const { ReviewerConfig } = require("./shared/reviewerConfig");
-const { PATH_TO_CONFIG_FILE } = require("./shared/constants");
+const { BOT_NAME, PATH_TO_CONFIG_FILE, REPO_OWNER, REPO } = require("./shared/constants");
 
 async function areReviewersAssigned(
   pullNumber: number,
@@ -39,6 +39,27 @@ async function processPrComment(
 ) {
   const commentContents = payload.comment.body;
   const commentAuthor = payload.sender.login;
+  const pullAuthor =
+    payload.issue?.user?.login || payload.pull_request?.user?.login;
+  if (commentAuthor != pullAuthor && commentAuthor != BOT_NAME) {
+    let labels = payload.issue?.labels || payload.pull_request?.labels;
+    let slowReview = false;
+    labels.forEach(label => {
+      if (label.name.toLowerCase() == "slow-review") {
+        slowReview = true;
+      }
+    });
+    if (slowReview) {
+      const githubClient = github.getGitHubClient();
+      const pullNumber = payload.issue?.number || payload.pull_request?.number;
+      labels = (await githubClient.rest.issues.removeLabel({
+        owner: REPO_OWNER,
+        repo: REPO,
+        issue_number: pullNumber,
+        name: "slow-review",
+      })).data;
+    }
+  }
   console.log(commentContents);
   if (
     await processCommand(
@@ -59,8 +80,6 @@ async function processPrComment(
   console.log(
     "No command to be processed, checking if we should shift attention to reviewers"
   );
-  const pullAuthor =
-    payload.issue?.user?.login || payload.pull_request?.user?.login;
   if (pullAuthor == commentAuthor) {
     await setNextActionReviewers(payload, stateClient);
   } else {
@@ -145,7 +164,7 @@ async function processPrUpdate() {
   // TODO(damccorm) - remove this when we roll out to more than go
   const existingLabels = payload.issue?.labels || payload.pull_request?.labels;
   let containsGoLabel = false;
-  existingLabels.forEach(label => {
+  existingLabels.forEach((label) => {
     if (label.name.toLowerCase() == "go") {
       containsGoLabel = true;
     }
@@ -172,8 +191,8 @@ async function processPrUpdate() {
     case "pull_request_review_comment":
     case "issue_comment":
       console.log("Processing comment event");
-      if (payload.action != 'created') {
-        console.log('Comment wasnt just created, skipping');
+      if (payload.action != "created") {
+        console.log("Comment wasnt just created, skipping");
         return;
       }
       await processPrComment(payload, stateClient, reviewerConfig);

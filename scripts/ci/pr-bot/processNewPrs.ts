@@ -22,7 +22,6 @@ const commentStrings = require("./shared/commentStrings");
 const { ReviewerConfig } = require("./shared/reviewerConfig");
 const { PersistentState } = require("./shared/persistentState");
 const { REPO_OWNER, REPO, PATH_TO_CONFIG_FILE } = require("./shared/constants");
-const path = require("path");
 
 // Returns true if the pr needs to be processed or false otherwise.
 // We don't need to process PRs that:
