@@ -98,8 +98,9 @@ async function processPrReview(
     );
     let availableReviewers =
       reviewerConfig.getReviewersForLabel(labelOfReviewer);
-    let chosenCommitter =
-      reviewersState.assignNextCommitter(availableReviewers);
+    let chosenCommitter = await reviewersState.assignNextCommitter(
+      availableReviewers
+    );
     prState.reviewersAssignedForLabels[labelOfReviewer] = chosenCommitter;
 
     // Set next action to committer
@@ -145,7 +146,7 @@ async function processPrUpdate() {
   // TODO(damccorm) - remove this when we roll out to more than go
   const existingLabels = payload.issue?.labels || payload.pull_request?.labels;
   let containsGoLabel = false;
-  existingLabels.forEach(label => {
+  existingLabels.forEach((label) => {
     if (label.name.toLowerCase() == "go") {
       containsGoLabel = true;
     }
@@ -172,8 +173,8 @@ async function processPrUpdate() {
     case "pull_request_review_comment":
     case "issue_comment":
       console.log("Processing comment event");
-      if (payload.action != 'created') {
-        console.log('Comment wasnt just created, skipping');
+      if (payload.action != "created") {
+        console.log("Comment wasnt just created, skipping");
         return;
       }
       await processPrComment(payload, stateClient, reviewerConfig);
