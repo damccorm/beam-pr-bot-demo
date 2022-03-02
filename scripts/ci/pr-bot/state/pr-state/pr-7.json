@@ -5,7 +5,5 @@
   },
   "nextAction": "Reviewers",
   "stopReviewerNotifications": false,
-  "remindAfterTestsPass": [
-    "dannymccormick3"
-  ]
+  "remindAfterTestsPass": []
 }
