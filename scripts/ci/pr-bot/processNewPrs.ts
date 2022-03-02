@@ -21,50 +21,61 @@ const { getChecksStatus } = require("./shared/checks");
 const commentStrings = require("./shared/commentStrings");
 const { ReviewerConfig } = require("./shared/reviewerConfig");
 const { PersistentState } = require("./shared/persistentState");
+const { Pr } = require("./shared/pr");
 const { REPO_OWNER, REPO, PATH_TO_CONFIG_FILE } = require("./shared/constants");
-const path = require("path");
+import { CheckStatus } from "./shared/checks";
 
-// Returns true if the pr needs to be processed or false otherwise.
-// We don't need to process PRs that:
-// 1) Have WIP in their name
-// 2) Are less than 20 minutes old
-// 3) Are draft prs
-// 4) Are closed
-// 5) Have already been processed
-// unless we're supposed to remind the user after tests pass
-// (in which case that's all we need to do).
-function needsProcessed(pull, prState): boolean {
+/*
+ * Returns true if the pr needs to be processed or false otherwise.
+ * We don't need to process PRs that:
+ * 1) Have WIP in their name
+ * 2) Are less than 20 minutes old
+ * 3) Are draft prs
+ * 4) Are closed
+ * 5) Have already been processed
+ * 6) Have notifications stopped
+ * 7) The pr doesn't contain the go label (temporary). TODO(damccorm) - remove this when we're ready to roll this out to everyone.
+ * unless we're supposed to remind the user after tests pass
+ * (in which case that's all we need to do).
+ */
+function needsProcessed(pull: any, prState: typeof Pr): boolean {
+  if (!pull.labels.find((label) => label.name.toLowerCase() === "go")) {
+    console.log(
+      `Skipping PR ${pull.number} because it doesn't contain the go label`
+    );
+    return false;
+  }
   if (prState.remindAfterTestsPass && prState.remindAfterTestsPass.length > 0) {
     return true;
   }
   if (pull.title.toLowerCase().indexOf("wip") >= 0) {
-    console.log(`Skipping pr ${pull.number} because it is a WIP`);
+    console.log(`Skipping PR ${pull.number} because it is a WIP`);
     return false;
   }
   let timeCutoff = new Date(new Date().getTime() - 20 * 60000);
   if (new Date(pull.created_at) > timeCutoff) {
     console.log(
-      `Skipping pr ${pull.number} because it was created less than 20 minutes ago`
+      `Skipping PR ${pull.number} because it was created less than 20 minutes ago`
     );
     return false;
   }
-  if (pull.state.toLowerCase() != "open") {
-    console.log(`Skipping pr ${pull.number} because it is closed`);
+  if (pull.state.toLowerCase() !== "open") {
+    console.log(`Skipping PR ${pull.number} because it is closed`);
     return false;
   }
   if (pull.draft) {
-    console.log(`Skipping pr ${pull.number} because it is a draft`);
+    console.log(`Skipping PR ${pull.number} because it is a draft`);
     return false;
   }
   if (Object.keys(prState.reviewersAssignedForLabels).length > 0) {
     console.log(
-      `Skipping pr ${pull.number} because it already has been assigned`
+      `Skipping PR ${pull.number} because it already has been assigned`
     );
     return false;
   }
   if (prState.stopReviewerNotifications) {
     console.log(
-      `Skipping pr ${pull.number} because reviewer notifications have been stopped`
+      `Skipping PR ${pull.number} because reviewer notifications have been stopped`
     );
     return false;
   }
@@ -72,32 +83,46 @@ function needsProcessed(pull, prState): boolean {
   return true;
 }
 
-// If the checks passed in via checkstate have completed, notifies the users who have configured notifications.
-async function remindIfChecksCompleted(pull, stateClient, checkState, prState) {
+/*
+ * If the checks passed in via checkstate have completed, notifies the users who have configured notifications.
+ */
+async function remindIfChecksCompleted(
+  pull: any,
+  stateClient: typeof PersistentState,
+  checkState: CheckStatus,
+  prState: typeof Pr
+) {
   console.log(
-    `Notifying reviewers if checks for pr ${pull.number} have completed, then returning`
+    `Notifying reviewers if checks for PR ${pull.number} have completed, then returning`
   );
-  if (checkState.completed) {
-    if (checkState.succeeded) {
-      await github.addPrComment(
-        pull.number,
-        commentStrings.allChecksPassed(prState.remindAfterTestsPass)
-      );
-    } else {
-      await github.addPrComment(
-        pull.number,
-        commentStrings.someChecksFailing(prState.remindAfterTestsPass)
-      );
-    }
-    prState.remindAfterTestsPass = [];
-    await stateClient.writePrState(pull.number, prState);
+  if (!checkState.completed) {
+    return;
   }
+  if (checkState.succeeded) {
+    await github.addPrComment(
+      pull.number,
+      commentStrings.allChecksPassed(prState.remindAfterTestsPass)
+    );
+  } else {
+    await github.addPrComment(
+      pull.number,
+      commentStrings.someChecksFailing(prState.remindAfterTestsPass)
+    );
+  }
+  prState.remindAfterTestsPass = [];
+  await stateClient.writePrState(pull.number, prState);
 }
 
-// If we haven't already
-async function notifyChecksFailed(pull, stateClient, prState) {
+/*
+ * If we haven't already, let the author know checks are failing.
+ */
+async function notifyChecksFailed(
+  pull: any,
+  stateClient: typeof PersistentState,
+  prState: typeof Pr
+) {
   console.log(
-    `Checks are failing for pr ${pull.number}. Commenting if we haven't already and skipping.`
+    `Checks are failing for PR ${pull.number}. Commenting if we haven't already and skipping.`
   );
   if (!prState.commentedAboutFailingChecks) {
     await github.addPrComment(
@@ -109,13 +134,19 @@ async function notifyChecksFailed(pull, stateClient, prState) {
   await stateClient.writePrState(pull.number, prState);
 }
 
-// Performs all the business logic of processing a new pull request, including:
-// 1) Checking if it needs processed
-// 2) Reminding reviewers if checks have completed (if they've subscribed to that)
-// 3) Picking/assigning reviewers
-// 4) Adding "Next Action: Reviewers label"
-// 5) Storing the state of the pull request/reviewers in a dedicated branch.
-async function processPull(pull, reviewerConfig, stateClient) {
+/*
+ * Performs all the business logic of processing a new pull request, including:
+ * 1) Checking if it needs processed
+ * 2) Reminding reviewers if checks have completed (if they've subscribed to that)
+ * 3) Picking/assigning reviewers
+ * 4) Adding "Next Action: Reviewers label"
+ * 5) Storing the state of the pull request/reviewers in a dedicated branch.
+ */
+async function processPull(
+  pull: any,
+  reviewerConfig: typeof ReviewerConfig,
+  stateClient: typeof PersistentState
+) {
   let prState = await stateClient.getPrState(pull.number);
   if (!needsProcessed(pull, prState)) {
     return;
@@ -138,15 +169,14 @@ async function processPull(pull, reviewerConfig, stateClient) {
   prState.commentedAboutFailingChecks = false;
 
   // Pick reviewers to assign. Store them in reviewerStateToUpdate and update the prState object with those reviewers (and their associated labels)
-  let reviewerStateToUpdate = {};
+  let reviewerStateToUpdate: { [key: string]: typeof ReviewersForLabel } = {};
   const reviewersForLabels: { [key: string]: string[] } =
     reviewerConfig.getReviewersForLabels(pull.labels, [pull.user.login]);
   var labels = Object.keys(reviewersForLabels);
-  if (!labels || labels.length == 0) {
+  if (!labels || labels.length === 0) {
     return;
   }
-  for (let i = 0; i < labels.length; i++) {
-    let label = labels[i];
+  for (const label of labels) {
     let availableReviewers = reviewersForLabels[label];
     let reviewersState = await stateClient.getReviewersForLabelState(label);
     let chosenReviewer = reviewersState.assignNextReviewer(availableReviewers);
@@ -154,7 +184,7 @@ async function processPull(pull, reviewerConfig, stateClient) {
     prState.reviewersAssignedForLabels[label] = chosenReviewer;
   }
 
-  console.log(`Assigning reviewers for pr ${pull.number}`);
+  console.log(`Assigning reviewers for PR ${pull.number}`);
   await github.addPrComment(
     pull.number,
     commentStrings.assignReviewer(prState.reviewersAssignedForLabels)
@@ -165,8 +195,7 @@ async function processPull(pull, reviewerConfig, stateClient) {
 
   await stateClient.writePrState(pull.number, prState);
   let labelsToUpdate = Object.keys(reviewerStateToUpdate);
-  for (let i = 0; i < labelsToUpdate.length; i++) {
-    let label = labelsToUpdate[i];
+  for (const label of labelsToUpdate) {
     await stateClient.writeReviewersForLabelState(
       label,
       reviewerStateToUpdate[label]
@@ -187,8 +216,7 @@ async function processNewPrs() {
     }
   );
 
-  for (let i = 0; i < openPulls.length; i++) {
-    let pull = openPulls[i];
+  for (const pull of openPulls) {
     await processPull(pull, reviewerConfig, stateClient);
   }
 }

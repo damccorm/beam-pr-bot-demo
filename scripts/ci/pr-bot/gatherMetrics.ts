@@ -50,7 +50,7 @@ async function getPullsFromLastYear(): Promise<any[]> {
   const cutoffDate = new Date(
     new Date().setFullYear(new Date().getFullYear() - 1)
   );
-  console.log(`Getting prs newer than ${cutoffDate}`);
+  console.log(`Getting PRs newer than ${cutoffDate}`);
   const githubClient = github.getGitHubClient();
   let result = await githubClient.rest.pulls.list({
     owner: REPO_OWNER,
@@ -65,10 +65,10 @@ async function getPullsFromLastYear(): Promise<any[]> {
     result.data.length > 0 &&
     new Date(result.data[result.data.length - 1].created_at) > cutoffDate
   ) {
-    if (retries == 0) {
-      console.log(`Getting prs, page: ${page}`);
+    if (retries === 0) {
+      console.log(`Getting PRs, page: ${page}`);
       console.log(
-        `Current oldest pr = ${new Date(
+        `Current oldest PR = ${new Date(
           result.data[result.data.length - 1].created_at
         )}`
       );
@@ -91,7 +91,7 @@ async function getPullsFromLastYear(): Promise<any[]> {
       retries += 1;
     }
   }
-  console.log("Got all prs, moving to the processing stage");
+  console.log("Got all PRs, moving to the processing stage");
   return pulls;
 }
 
@@ -105,7 +105,7 @@ function checkIfFirstTimeContributor(
   for (let i = 0; i < pullsFromLastYear.length; i++) {
     if (
       pullsFromLastYear[i].created_at < pull.created_at &&
-      pullsFromLastYear[i].user.login == pull.user.login
+      pullsFromLastYear[i].user.login === pull.user.login
     ) {
       return false;
     }
@@ -175,7 +175,7 @@ function extractReviewersTaggedFromCommentBody(body: string): string[] {
       curUsername += body[usernameIndex];
       usernameIndex += 1;
     }
-    // Filter out username from pr template
+    // Filter out username from PR template
     if (curUsername && curUsername != "username") {
       usernames.push(curUsername);
     }
@@ -300,7 +300,7 @@ function averageTimeFromCommitterAssignmentToPrMerge(
   pullStats: PrStats[],
   committers: string[]
 ): number {
-  if (committers.length == 0) {
+  if (committers.length === 0) {
     return 0;
   }
   let numCommitterReviews = 0;
@@ -405,7 +405,7 @@ async function reportMetrics(statBuckets: { [key: number]: PrStats[] }) {
   console.log("---------------------------------");
   let csvOutput = "";
   csvOutput +=
-    "Bucket start (bucketed by merge time),Prs Completed,Prs completed by first time contributors,Average time in minutes to first review,Average time in minutes to first review for new contributors,Average time in minutes from pr creation to completion,Total number of reviewers,Total number of committers performing reviews,Total number of non-committers performing reviews,Gini index (fairness) of committers performing reviews,Average time in minutes from committer assignment to pr merge";
+    "Bucket start (bucketed by merge time),PRs Completed,PRs completed by first time contributors,Average time in minutes to first review,Average time in minutes to first review for new contributors,Average time in minutes from PR creation to completion,Total number of reviewers,Total number of committers performing reviews,Total number of non-committers performing reviews,Gini index (fairness) of committers performing reviews,Average time in minutes from committer assignment to PR merge";
   const startDates = Object.keys(statBuckets);
   for (let i = 0; i < startDates.length; i++) {
     let startDate = startDates[i];
@@ -416,11 +416,11 @@ async function reportMetrics(statBuckets: { [key: number]: PrStats[] }) {
     console.log("Bucket start:", bucketStart);
     csvOutput += `\n${bucketStart.toDateString()}`;
 
-    console.log("Prs completed:", aggregatedStats.prsCompleted);
+    console.log("PRs completed:", aggregatedStats.prsCompleted);
     csvOutput += `,${aggregatedStats.prsCompleted}`;
 
     console.log(
-      "Prs completed by first time contributors:",
+      "PRs completed by first time contributors:",
       aggregatedStats.prsCompletedByNewContributors
     );
     csvOutput += `,${aggregatedStats.prsCompletedByNewContributors}`;
@@ -444,7 +444,7 @@ async function reportMetrics(statBuckets: { [key: number]: PrStats[] }) {
     )}`;
 
     console.log(
-      "Average time in minutes from pr creation to completion:",
+      "Average time in minutes from PR creation to completion:",
       convertMsToRoundedMinutes(aggregatedStats.averageTimeCreationToCompletion)
     );
     csvOutput += `,${convertMsToRoundedMinutes(
@@ -476,7 +476,7 @@ async function reportMetrics(statBuckets: { [key: number]: PrStats[] }) {
     csvOutput += `,${aggregatedStats.giniIndexCommittersPerformingReviews}`;
 
     console.log(
-      "Average time in minutes from committer assignment to pr merge:",
+      "Average time in minutes from committer assignment to PR merge:",
       convertMsToRoundedMinutes(
         aggregatedStats.averageTimeFromCommitterAssignmentToPrMerge
       )
@@ -503,7 +503,7 @@ async function gatherMetrics() {
     if (new Date(pull.created_at) > cutoffDate && pull.merged_at) {
       pullStats.push(await extractPrStats(pull, pullsFromLastYear));
     }
-    if (i % 10 == 0) {
+    if (i % 10 === 0) {
       process.stdout.write(".");
     }
   }

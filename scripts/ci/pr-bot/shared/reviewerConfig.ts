@@ -18,6 +18,7 @@
 
 const yaml = require("js-yaml");
 const fs = require("fs");
+import { Label } from "./githubUtils";
 
 export class ReviewerConfig {
   private config: any;
@@ -30,7 +31,7 @@ export class ReviewerConfig {
   // Given a list of labels and an exclusion list of reviewers not to include (e.g. the author)
   // returns all possible reviewers for each label
   getReviewersForLabels(
-    labels: any[],
+    labels: Label[],
     exclusionList: string[]
   ): { [key: string]: string[] } {
     let reviewersFound = false;
@@ -55,24 +56,22 @@ export class ReviewerConfig {
   // Get possible reviewers excluding the author.
   getReviewersForLabel(label: string, exclusionList: string[]): string[] {
     var labelObjects = this.config.labels;
-    for (var i = 0; i < labelObjects.length; i++) {
-      var labelObject = labelObjects[i];
-      if (labelObject.name.toLowerCase() == label.toLowerCase()) {
-        return this.excludeFromReviewers(labelObject.reviewers, exclusionList);
-      }
+    const labelObject = labelObjects.find(
+      (labelObject) => labelObject.name.toLowerCase() === label.toLowerCase()
+    );
+    if (!labelObject) {
+      return [];
     }
-    return [];
+
+    return this.excludeFromReviewers(labelObject.reviewers, exclusionList);
   }
 
   getExclusionListForLabel(label: string): string[] {
     var labelObjects = this.config.labels;
-    for (var i = 0; i < labelObjects.length; i++) {
-      var labelObject = labelObjects[i];
-      if (labelObject.name.toLowerCase() == label.toLowerCase()) {
-        return labelObject.exclusionList;
-      }
-    }
-    return [];
+    const labelObject = labelObjects.find(
+      (labelObject) => labelObject.name.toLowerCase() === label.toLowerCase()
+    );
+    return labelObject?.exclusionList ?? [];
   }
 
   // Get fallback reviewers excluding the author.
@@ -90,12 +89,9 @@ export class ReviewerConfig {
     if (!exclusionList) {
       return reviewers;
     }
-    exclusionList.forEach((reviewer) => {
-      const reviewerIndex = reviewers.indexOf(reviewer);
-      if (reviewerIndex > -1) {
-        reviewers.splice(reviewerIndex, 1);
-      }
-    });
-    return reviewers;
+
+    return reviewers.filter(
+      (reviewer) => exclusionList.indexOf(reviewer) == -1
+    );
   }
 }

@@ -22,7 +22,12 @@ export class ReviewersForLabel {
   public label: string;
   public dateOfLastReviewAssignment: { [key: string]: number };
 
-  constructor(label: string, propertyDictionary: any) {
+  constructor(
+    label: string,
+    propertyDictionary: {
+      dateOfLastReviewAssignment: { [key: string]: number };
+    }
+  ) {
     this.label = label;
     this.dateOfLastReviewAssignment = {}; // map of reviewer to date
 
@@ -39,7 +44,7 @@ export class ReviewersForLabel {
   // returns the next reviewer up based on who has reviewed least recently.
   // Updates this object to reflect their assignment.
   assignNextReviewer(availableReviewers: string[]): string {
-    if (availableReviewers.length == 0) {
+    if (availableReviewers.length === 0) {
       throw new Error(`No reviewers available for label ${this.label}`);
     }
 
@@ -72,7 +77,7 @@ export class ReviewersForLabel {
   // Updates this object to reflect their assignment.
   async assignNextCommitter(availableReviewers: string[]): Promise<string> {
     let earliestDate = Date.now();
-    let earliestCommitter: any = null;
+    let earliestCommitter: string = "";
 
     for (let i = 0; i < availableReviewers.length; i++) {
       let availableReviewer = availableReviewers[i];

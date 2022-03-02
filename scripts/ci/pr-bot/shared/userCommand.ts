@@ -19,6 +19,8 @@
 const github = require("./githubUtils");
 const commentStrings = require("./commentStrings");
 const { BOT_NAME } = require("./constants");
+const { StateClient } = require("./persistentState");
+const { ReviewerConfig } = require("./reviewerConfig");
 
 // Reads the comment and processes the command if one is contained in it.
 // Returns true if it runs a command, false otherwise.
@@ -26,11 +28,11 @@ export async function processCommand(
   payload: any,
   commentAuthor: string,
   commentText: string,
-  stateClient: any,
-  reviewerConfig: any
+  stateClient: typeof StateClient,
+  reviewerConfig: typeof ReviewerConfig
 ) {
   // Don't process any commands from our bot.
-  if (commentAuthor == BOT_NAME) {
+  if (commentAuthor === BOT_NAME) {
     return false;
   }
   console.log(commentAuthor);
@@ -70,8 +72,8 @@ async function assignToNextReviewer(
   payload: any,
   commentAuthor: string,
   pullNumber: number,
-  stateClient: any,
-  reviewerConfig: any
+  stateClient: typeof StateClient,
+  reviewerConfig: typeof ReviewerConfig
 ) {
   let prState = await stateClient.getPrState(pullNumber);
   let labelOfReviewer = prState.getLabelForReviewer(payload.sender.login);
@@ -79,8 +81,7 @@ async function assignToNextReviewer(
     let reviewersState = await stateClient.getReviewersForLabelState(
       labelOfReviewer
     );
-    const pullAuthor =
-      payload.issue?.user?.login || payload.pull_request?.user?.login;
+    const pullAuthor = github.getPullAuthorFromPayload(payload);
     let availableReviewers = reviewerConfig.getReviewersForLabel(
       labelOfReviewer,
       [commentAuthor, pullAuthor]
@@ -114,7 +115,7 @@ async function assignToNextReviewer(
 // TODO(damccorm) - we could try to do something more intelligent here like figuring out which label that reviewer belongs to.
 async function manuallyAssignedToReviewer(
   pullNumber: number,
-  stateClient: any
+  stateClient: typeof StateClient
 ) {
   await stopReviewerNotifications(
     pullNumber,
@@ -125,7 +126,7 @@ async function manuallyAssignedToReviewer(
 
 async function stopReviewerNotifications(
   pullNumber: number,
-  stateClient: any,
+  stateClient: typeof StateClient,
   reason: string
 ) {
   let prState = await stateClient.getPrState(pullNumber);
@@ -142,7 +143,7 @@ async function stopReviewerNotifications(
 async function remindAfterTestsPass(
   pullNumber: number,
   username: string,
-  stateClient: any
+  stateClient: typeof StateClient
 ) {
   let prState = await stateClient.getPrState(pullNumber);
   prState.remindAfterTestsPass.push(username);
@@ -158,7 +159,7 @@ async function remindAfterTestsPass(
 async function waitOnAuthor(
   payload: any,
   pullNumber: number,
-  stateClient: any
+  stateClient: typeof StateClient
 ) {
   const existingLabels = payload.issue?.labels || payload.pull_request?.labels;
   await github.nextActionAuthor(pullNumber, existingLabels);
@@ -170,8 +171,8 @@ async function waitOnAuthor(
 async function assignReviewerSet(
   payload: any,
   pullNumber: number,
-  stateClient: any,
-  reviewerConfig: any
+  stateClient: typeof StateClient,
+  reviewerConfig: typeof ReviewerConfig
 ) {
   let prState = await stateClient.getPrState(pullNumber);
   if (Object.values(prState.reviewersAssignedForLabels).length > 0) {
@@ -185,8 +186,7 @@ async function assignReviewerSet(
   }
 
   const existingLabels = payload.issue?.labels || payload.pull_request?.labels;
-  const pullAuthor =
-    payload.issue?.user?.login || payload.pull_request?.user?.login;
+  const pullAuthor = github.getPullAuthorFromPayload(payload);
   const reviewersForLabels = reviewerConfig.getReviewersForLabels(
     existingLabels,
     [pullAuthor]
