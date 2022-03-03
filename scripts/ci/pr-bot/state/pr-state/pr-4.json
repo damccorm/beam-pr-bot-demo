@@ -1,7 +1,7 @@
 {
   "commentedAboutFailingChecks": false,
   "reviewersAssignedForLabels": {
-    "go": {}
+    "go": "dannymccormick3"
   },
   "nextAction": "Reviewers",
   "stopReviewerNotifications": false,
