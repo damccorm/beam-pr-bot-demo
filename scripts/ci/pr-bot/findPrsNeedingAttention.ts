@@ -142,16 +142,21 @@ async function processPull(
     const client = github.getGitHubClient();
     const currentReviewers = await stateClient.getPrState(pull.number)
       .reviewersAssignedForLabels;
-    await github.addPrComment(
-      pull.number,
-      commentStrings.slowReview(Object.values(currentReviewers))
-    );
-    await client.rest.issues.addLabels({
-      owner: REPO_OWNER,
-      repo: REPO,
-      issue_number: pull.number,
-      labels: [SLOW_REVIEW_LABEL],
-    });
+    if (currentReviewers && Object.values(currentReviewers).length > 0) {
+      console.log(
+        `Flagging pr ${pull.number} as slow. Tagging reviewers ${currentReviewers}`
+      );
+      await github.addPrComment(
+        pull.number,
+        commentStrings.slowReview(Object.values(currentReviewers))
+      );
+      await client.rest.issues.addLabels({
+        owner: REPO_OWNER,
+        repo: REPO,
+        issue_number: pull.number,
+        labels: [SLOW_REVIEW_LABEL],
+      });
+    }
   }
 }
 
