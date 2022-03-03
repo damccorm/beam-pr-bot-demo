@@ -143,10 +143,15 @@ async function processPull(
   }
 
   if (await isSlowReview(pull)) {
+    console.log(`Flagging pr ${pull.number} as slow.`);
     const client = github.getGitHubClient();
-    const currentReviewers = await stateClient.getPrState(pull.number)
-      .reviewersAssignedForLabels;
-    if (currentReviewers && Object.values(currentReviewers).length > 0) {
+    const prState = await stateClient.getPrState(pull.number);
+    const currentReviewers = prState.reviewersAssignedForLabels;
+    if (
+      !prState.stopReviewerNotifications &&
+      currentReviewers &&
+      Object.values(currentReviewers).length > 0
+    ) {
       console.log(
         `Flagging pr ${pull.number} as slow. Tagging reviewers ${currentReviewers}`
       );
