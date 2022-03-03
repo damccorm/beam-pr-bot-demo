@@ -138,6 +138,7 @@ async function processPull(
     return;
   }
   if (hasLabel(pull, SLOW_REVIEW_LABEL)) {
+    console.log(`PR ${pull.number} has the slow review label`);
     const lastModified = new Date(pull.updated_at);
     const twoWeekDaysAgo = getTwoWeekdaysAgo();
     if (lastModified.getTime() < twoWeekDaysAgo.getTime()) {
