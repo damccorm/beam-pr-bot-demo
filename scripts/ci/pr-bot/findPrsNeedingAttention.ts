@@ -94,8 +94,8 @@ async function assignToNewReviewers(
 ) {
   let prState = await stateClient.getPrState(pull.number);
   let reviewerStateToUpdate = {};
-  const labels = Object.keys(prState);
-  let reviewersToExclude = Object.values(prState);
+  const labels = Object.keys(prState.reviewersAssignedForLabels);
+  let reviewersToExclude = Object.values(prState.reviewersAssignedForLabels);
   reviewersToExclude.push(pull.user.login);
   const reviewersForLabels: { [key: string]: string[] } =
     reviewerConfig.getReviewersForLabels(labels, reviewersToExclude);
@@ -115,8 +115,7 @@ async function assignToNewReviewers(
 
   await stateClient.writePrState(pull.number, prState);
   let labelsToUpdate = Object.keys(reviewerStateToUpdate);
-  for (let i = 0; i < labelsToUpdate.length; i++) {
-    let label = labelsToUpdate[i];
+  for (const label of labelsToUpdate) {
     await stateClient.writeReviewersForLabelState(
       label,
       reviewerStateToUpdate[label]
