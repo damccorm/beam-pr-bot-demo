@@ -152,6 +152,12 @@ async function processPull(
         `PR ${pull.number} still awaiting action - assigning new reviewers`
       );
       await assignToNewReviewers(pull, reviewerConfig, stateClient);
+      await github.getGitHubClient().rest.issues.removeLabel({
+        owner: REPO_OWNER,
+        repo: REPO,
+        issue_number: pull.number,
+        name: "slow-review",
+      })
     }
 
     return;
