@@ -141,6 +141,7 @@ async function processPull(
     const lastModified = new Date(pull.updated_at);
     const twoWeekDaysAgo = getTwoWeekdaysAgo();
     if (lastModified.getTime() < twoWeekDaysAgo.getTime()) {
+      console.log(`PR ${pull.number} still awaiting action - assigning new reviewers`);
       await assignToNewReviewers(pull, reviewerConfig, stateClient);
     }
 
@@ -148,7 +149,6 @@ async function processPull(
   }
 
   if (await isSlowReview(pull)) {
-    console.log(`Flagging pr ${pull.number} as slow.`);
     const client = github.getGitHubClient();
     const currentReviewers = prState.reviewersAssignedForLabels;
     if (currentReviewers && Object.values(currentReviewers).length > 0) {
