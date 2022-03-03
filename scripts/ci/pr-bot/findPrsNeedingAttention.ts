@@ -21,17 +21,20 @@ function hasLabel(pull: any, labelName: string): boolean {
 }
 
 function getTwoWeekdaysAgo(): Date {
-  let twoWeekDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
-  const currentDay = new Date(Date.now()).getDay();
-  // If Saturday, sunday, monday, or tuesday, add extra time to account for weekend.
-  if (currentDay === 6) {
-    twoWeekDaysAgo.setDate(twoWeekDaysAgo.getDate() - 1);
-  }
-  if (currentDay <= 2) {
-    twoWeekDaysAgo.setDate(twoWeekDaysAgo.getDate() - 2);
-  }
+  // TODO - return to this approach instead of 20 minutes ago like it currently is.
+  // let twoWeekDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+  // const currentDay = new Date(Date.now()).getDay();
+  // // If Saturday, sunday, monday, or tuesday, add extra time to account for weekend.
+  // if (currentDay === 6) {
+  //   twoWeekDaysAgo.setDate(twoWeekDaysAgo.getDate() - 1);
+  // }
+  // if (currentDay <= 2) {
+  //   twoWeekDaysAgo.setDate(twoWeekDaysAgo.getDate() - 2);
+  // }
 
-  return twoWeekDaysAgo;
+  // return twoWeekDaysAgo;
+
+  return new Date(Date.now() - 20 * 60 * 1000);
 }
 
 async function isSlowReview(pull: any): Promise<boolean> {
@@ -39,7 +42,8 @@ async function isSlowReview(pull: any): Promise<boolean> {
     return false;
   }
   const lastModified = new Date(pull.updated_at);
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  // TODO - bump this back to 7 days when done testing.
+  const sevenDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
   if (lastModified.getTime() < sevenDaysAgo.getTime()) {
     return true;
   }
