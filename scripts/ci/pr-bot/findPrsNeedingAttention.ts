@@ -132,6 +132,11 @@ async function processPull(
   reviewerConfig: typeof ReviewerConfig,
   stateClient: typeof PersistentState
 ) {
+  const prState = await stateClient.getPrState(pull.number);
+  if (prState.stopReviewerNotifications) {
+    console.log(`Skipping PR ${pull.number} - notifications silenced`);
+    return;
+  }
   if (hasLabel(pull, SLOW_REVIEW_LABEL)) {
     const lastModified = new Date(pull.updated_at);
     const twoWeekDaysAgo = getTwoWeekdaysAgo();
@@ -145,13 +150,8 @@ async function processPull(
   if (await isSlowReview(pull)) {
     console.log(`Flagging pr ${pull.number} as slow.`);
     const client = github.getGitHubClient();
-    const prState = await stateClient.getPrState(pull.number);
     const currentReviewers = prState.reviewersAssignedForLabels;
-    if (
-      !prState.stopReviewerNotifications &&
-      currentReviewers &&
-      Object.values(currentReviewers).length > 0
-    ) {
+    if (currentReviewers && Object.values(currentReviewers).length > 0) {
       console.log(
         `Flagging pr ${pull.number} as slow. Tagging reviewers ${currentReviewers}`
       );
