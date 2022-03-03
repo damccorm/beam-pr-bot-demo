@@ -102,11 +102,13 @@ async function assignToNewReviewers(
   for (const labelObject of labelObjects) {
     const label = labelObject.name;
     let availableReviewers = reviewersForLabels[label];
-    console.log(`label: ${label}, availableReviewers: ${availableReviewers}`);
-    let reviewersState = await stateClient.getReviewersForLabelState(label);
-    let chosenReviewer = reviewersState.assignNextCommitter(availableReviewers);
-    reviewerStateToUpdate[label] = reviewersState;
-    prState.reviewersAssignedForLabels[label] = chosenReviewer;
+    if (availableReviewers && availableReviewers.length > 0) {
+      let reviewersState = await stateClient.getReviewersForLabelState(label);
+      let chosenReviewer =
+        reviewersState.assignNextCommitter(availableReviewers);
+      reviewerStateToUpdate[label] = reviewersState;
+      prState.reviewersAssignedForLabels[label] = chosenReviewer;
+    }
   }
 
   console.log(`Assigning new reviewers for pr ${pull.number}`);
