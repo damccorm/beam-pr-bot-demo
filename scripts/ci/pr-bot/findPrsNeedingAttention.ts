@@ -138,9 +138,9 @@ async function processPull(
     return;
   }
   if (hasLabel(pull, SLOW_REVIEW_LABEL)) {
-    console.log(`PR ${pull.number} has the slow review label`);
     const lastModified = new Date(pull.updated_at);
     const twoWeekDaysAgo = getTwoWeekdaysAgo();
+    console.log(`PR ${pull.number} has the slow review label. Last modified ${lastModified}, cutoff ${twoWeekDaysAgo}`);
     if (lastModified.getTime() < twoWeekDaysAgo.getTime()) {
       console.log(`PR ${pull.number} still awaiting action - assigning new reviewers`);
       await assignToNewReviewers(pull, reviewerConfig, stateClient);
