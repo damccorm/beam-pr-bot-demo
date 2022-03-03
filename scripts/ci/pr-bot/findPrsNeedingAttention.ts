@@ -143,6 +143,9 @@ async function processPull(
     const currentReviewers = await stateClient.getPrState(pull.number)
       .reviewersAssignedForLabels;
     if (currentReviewers && Object.values(currentReviewers).length > 0) {
+      console.log(
+        `Flagging pr ${pull.number} as slow. Tagging reviewers ${currentReviewers}`
+      );
       await github.addPrComment(
         pull.number,
         commentStrings.slowReview(Object.values(currentReviewers))
