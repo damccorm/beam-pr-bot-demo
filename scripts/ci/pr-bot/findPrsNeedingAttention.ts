@@ -129,7 +129,6 @@ async function processPull(
   stateClient: typeof PersistentState
 ) {
   if (hasLabel(pull, SLOW_REVIEW_LABEL)) {
-    // TODO - update processPrUpdates.ts to remove this label as appropriate
     const lastModified = new Date(pull.updated_at);
     const twoWeekDaysAgo = getTwoWeekdaysAgo();
     if (lastModified.getTime() < twoWeekDaysAgo.getTime()) {
