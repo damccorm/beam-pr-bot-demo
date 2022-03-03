@@ -94,7 +94,7 @@ async function assignToNewReviewers(
 ) {
   let prState = await stateClient.getPrState(pull.number);
   let reviewerStateToUpdate = {};
-  const labels = Object.keys(prState.reviewersAssignedForLabels);
+  const labels = pull.labels;
   let reviewersToExclude = Object.values(prState.reviewersAssignedForLabels);
   reviewersToExclude.push(pull.user.login);
   console.log(`Getting new reviewers for labels: ${labels.join(",")}`);
