@@ -21,6 +21,7 @@ const commentStrings = require("./shared/commentStrings");
 const { processCommand } = require("./shared/userCommand");
 const {
   addPrComment,
+  getGitHubClient,
   nextActionReviewers,
   getPullAuthorFromPayload,
   getPullNumberFromPayload,
@@ -41,10 +42,9 @@ const reviewerAction = "Reviewers";
 async function removeSlowReviewLabel(payload: any): Promise<any> {
   let labels = payload.issue?.labels || payload.pull_request?.labels;
   if (labels.some((label) => label.name.toLowerCase() == SLOW_REVIEW_LABEL)) {
-    const githubClient = github.getGitHubClient();
     const pullNumber = payload.issue?.number || payload.pull_request?.number;
     labels = (
-      await githubClient.rest.issues.removeLabel({
+      await getGitHubClient().rest.issues.removeLabel({
         owner: REPO_OWNER,
         repo: REPO,
         issue_number: pullNumber,
