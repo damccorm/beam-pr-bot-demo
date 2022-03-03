@@ -34,7 +34,7 @@ function getTwoWeekdaysAgo(): Date {
 
   // return twoWeekDaysAgo;
 
-  return new Date(Date.now() - 20 * 60 * 1000);
+  return new Date(Date.now() - 2 * 60 * 1000);
 }
 
 async function isSlowReview(pull: any): Promise<boolean> {
