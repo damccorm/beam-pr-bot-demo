@@ -104,8 +104,9 @@ async function assignToNewReviewers(
     let availableReviewers = reviewersForLabels[label];
     if (availableReviewers && availableReviewers.length > 0) {
       let reviewersState = await stateClient.getReviewersForLabelState(label);
-      let chosenReviewer =
-        reviewersState.assignNextCommitter(availableReviewers);
+      let chosenReviewer = await reviewersState.assignNextCommitter(
+        availableReviewers
+      );
       reviewerStateToUpdate[label] = reviewersState;
       prState.reviewersAssignedForLabels[label] = chosenReviewer;
     }
