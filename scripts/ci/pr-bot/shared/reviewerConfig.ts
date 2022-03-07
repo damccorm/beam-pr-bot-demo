@@ -70,7 +70,6 @@ export class ReviewerConfig {
   // Get possible reviewers excluding the author.
   getReviewersForLabel(label: string, exclusionList: string[]): string[] {
     var labelObjects = this.config.labels;
-    console.log("AHHHHHHHHH", this.config, label, labelObjects);
     const labelObject = labelObjects.find(
       (labelObject) => labelObject.name.toLowerCase() === label.toLowerCase()
     );
