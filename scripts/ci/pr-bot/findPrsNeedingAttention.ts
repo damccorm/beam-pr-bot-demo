@@ -157,7 +157,7 @@ async function processPull(
         repo: REPO,
         issue_number: pull.number,
         name: "slow-review",
-      })
+      });
     }
 
     return;
