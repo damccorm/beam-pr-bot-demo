@@ -135,7 +135,9 @@ async function approvedBy(pull: any): Promise<string[]> {
     pull_number: pull.number,
   });
 
-  console.log(reviews);
+  const users = reviews.data.map(review => review.user.login);
+
+  console.log(users);
 
   return []
 }
