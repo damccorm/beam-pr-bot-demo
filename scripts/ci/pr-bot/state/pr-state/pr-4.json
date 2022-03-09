@@ -4,7 +4,6 @@
     "go": "damccorm"
   },
   "nextAction": "Reviewers",
-  "stopReviewerNotifications": false,
-  "remindAfterTestsPass": [],
-  "committerAssigned": true
+  "stopReviewerNotifications": true,
+  "remindAfterTestsPass": []
 }
