@@ -67,12 +67,6 @@ function needsProcessed(pull: any, prState: typeof Pr): boolean {
     console.log(`Skipping PR ${pull.number} because it is a draft`);
     return false;
   }
-  if (Object.keys(prState.reviewersAssignedForLabels).length > 0) {
-    console.log(
-      `Skipping PR ${pull.number} because it already has been assigned`
-    );
-    return false;
-  }
   if (prState.stopReviewerNotifications) {
     console.log(
       `Skipping PR ${pull.number} because reviewer notifications have been stopped`
@@ -134,6 +128,12 @@ async function notifyChecksFailed(
   await stateClient.writePrState(pull.number, prState);
 }
 
+async function approvedBy(pull: any): Promise<string[]> {
+  console.log(pull);
+
+  return []
+}
+
 /*
  * Performs all the business logic of processing a new pull request, including:
  * 1) Checking if it needs processed
@@ -151,6 +151,16 @@ async function processPull(
   if (!needsProcessed(pull, prState)) {
     return;
   }
+
+
+  if (Object.keys(prState.reviewersAssignedForLabels).length > 0) {
+    const approvers = await approvedBy(pull);
+    if (approvers.length == 0) {
+      return;
+    }
+  }
+
+  return;
 
   let checkState = await getChecksStatus(REPO_OWNER, REPO, pull.head.sha);
 
