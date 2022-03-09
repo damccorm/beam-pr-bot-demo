@@ -135,7 +135,7 @@ async function approvedBy(pull: any): Promise<string[]> {
     pull_number: pull.number,
   });
 
-  return reviews.data.map(review => review.user.login);
+  return reviews.data.map((review) => review.user.login);
 }
 
 /*
@@ -156,7 +156,6 @@ async function processPull(
     return;
   }
 
-
   if (Object.keys(prState.reviewersAssignedForLabels).length > 0) {
     if (prState.committerAssigned) {
       console.log(
@@ -168,8 +167,8 @@ async function processPull(
     const approvers = await approvedBy(pull);
     if (!approvers || approvers.length == 0) {
       console.log(
-      `Skipping PR ${pull.number} because reviewers are assigned but haven't approved`
-    );
+        `Skipping PR ${pull.number} because reviewers are assigned but haven't approved`
+      );
       return;
     }
 
