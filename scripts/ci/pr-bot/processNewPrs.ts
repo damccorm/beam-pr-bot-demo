@@ -168,7 +168,7 @@ async function processPull(
     }
 
     for (const approver of approvers) {
-      const labelOfReviewer = prState.getLabelForReviewer(payload.sender.login);
+      const labelOfReviewer = prState.getLabelForReviewer(approver);
       if (labelOfReviewer) {
         let reviewersState = await stateClient.getReviewersForLabelState(
           labelOfReviewer
@@ -182,17 +182,16 @@ async function processPull(
         prState.committerAssigned = true;
 
         // Set next action to committer
-        await addPrComment(
-          pullNumber,
+        await github.addPrComment(
+          pull.number,
           commentStrings.assignCommitter(chosenCommitter)
         );
-        const existingLabels =
-          payload.issue?.labels || payload.pull_request?.labels;
-        await nextActionReviewers(pullNumber, existingLabels);
-        prState.nextAction = reviewerAction;
+        await github.nextActionReviewers(pull.number, pull.labels);
+        // TODO - refactor to shared constant
+        prState.nextAction = "Reviewers";
 
         // Persist state
-        await stateClient.writePrState(pullNumber, prState);
+        await stateClient.writePrState(pull.number, prState);
         await stateClient.writeReviewersForLabelState(
           labelOfReviewer,
           reviewersState
