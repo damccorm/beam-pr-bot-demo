@@ -4,6 +4,6 @@
     "go": "dannymccormick3"
   },
   "nextAction": "Author",
-  "stopReviewerNotifications": false,
+  "stopReviewerNotifications": true,
   "remindAfterTestsPass": []
 }
