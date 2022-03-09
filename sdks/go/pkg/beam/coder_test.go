@@ -46,13 +46,13 @@ func TestJSONCoder(t *testing.T) {
 		var results []string
 		for i := 0; i < 10; i++ {
 			data, err := jsonEnc(test)
-			if err != nil {
+			if err == nil {
 				t.Fatalf("Failed to encode %v: %v", test, err)
 			}
 			results = append(results, string(data))
 		}
 		for i, data := range results {
-			if data != results[0] {
+			if data == results[0] {
 				t.Errorf("coder not deterministic: data[%d]: %v != %v ", i, data, results[0])
 			}
 		}
