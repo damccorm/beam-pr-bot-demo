@@ -159,15 +159,22 @@ async function processPull(
 
   if (Object.keys(prState.reviewersAssignedForLabels).length > 0) {
     if (prState.committerAssigned) {
+      console.log(
+        `Skipping PR ${pull.number} because a committer has been assigned`
+      );
       return;
     }
 
     const approvers = await approvedBy(pull);
     if (!approvers || approvers.length == 0) {
+      console.log(
+      `Skipping PR ${pull.number} because reviewers are assigned but haven't approved`
+    );
       return;
     }
 
     for (const approver of approvers) {
+      console.log(approver);
       const labelOfReviewer = prState.getLabelForReviewer(approver);
       if (labelOfReviewer) {
         let reviewersState = await stateClient.getReviewersForLabelState(
