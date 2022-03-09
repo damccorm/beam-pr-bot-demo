@@ -135,11 +135,7 @@ async function approvedBy(pull: any): Promise<string[]> {
     pull_number: pull.number,
   });
 
-  const users = reviews.data.map(review => review.user.login);
-
-  console.log(users);
-
-  return []
+  return reviews.data.map(review => review.user.login);
 }
 
 /*
@@ -162,9 +158,48 @@ async function processPull(
 
 
   if (Object.keys(prState.reviewersAssignedForLabels).length > 0) {
-    const approvers = await approvedBy(pull);
-    if (approvers.length == 0) {
+    if (prState.committerAssigned) {
       return;
+    }
+
+    const approvers = await approvedBy(pull);
+    if (!approvers || approvers.length == 0) {
+      return;
+    }
+
+    for (const approver of approvers) {
+      const labelOfReviewer = prState.getLabelForReviewer(payload.sender.login);
+      if (labelOfReviewer) {
+        let reviewersState = await stateClient.getReviewersForLabelState(
+          labelOfReviewer
+        );
+        const availableReviewers =
+          reviewerConfig.getReviewersForLabel(labelOfReviewer);
+        const chosenCommitter = await reviewersState.assignNextCommitter(
+          availableReviewers
+        );
+        prState.reviewersAssignedForLabels[labelOfReviewer] = chosenCommitter;
+        prState.committerAssigned = true;
+
+        // Set next action to committer
+        await addPrComment(
+          pullNumber,
+          commentStrings.assignCommitter(chosenCommitter)
+        );
+        const existingLabels =
+          payload.issue?.labels || payload.pull_request?.labels;
+        await nextActionReviewers(pullNumber, existingLabels);
+        prState.nextAction = reviewerAction;
+
+        // Persist state
+        await stateClient.writePrState(pullNumber, prState);
+        await stateClient.writeReviewersForLabelState(
+          labelOfReviewer,
+          reviewersState
+        );
+
+        return;
+      }
     }
   }
 
