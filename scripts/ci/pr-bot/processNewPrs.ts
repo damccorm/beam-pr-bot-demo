@@ -129,10 +129,10 @@ async function notifyChecksFailed(
 }
 
 async function approvedBy(pull: any): Promise<string[]> {
-  const reviews = await github.getGitHubClient().rest.pulls.listReviewComments({
+  const reviews = await github.getGitHubClient().rest.pulls.listReviews({
     owner: REPO_OWNER,
     repo: REPO,
-    issue_number: pull.number,
+    pull_number: pull.number,
   });
 
   console.log(reviews);
