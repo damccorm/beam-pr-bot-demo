@@ -1,9 +1,10 @@
 {
   "commentedAboutFailingChecks": false,
   "reviewersAssignedForLabels": {
-    "go": "damccormNotACommitter"
+    "go": "damccorm"
   },
   "nextAction": "Reviewers",
   "stopReviewerNotifications": false,
-  "remindAfterTestsPass": []
+  "remindAfterTestsPass": [],
+  "committerAssigned": true
 }
