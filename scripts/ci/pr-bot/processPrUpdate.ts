@@ -34,9 +34,8 @@ const {
   REPO_OWNER,
   REPO,
   SLOW_REVIEW_LABEL,
+  REVIEWERS_ACTION,
 } = require("./shared/constants");
-
-const reviewerAction = "Reviewers";
 
 // Removes the slow label if the pr has been reviewed and returns an updated payload.
 async function removeSlowReviewLabel(payload: any): Promise<any> {
@@ -125,7 +124,7 @@ async function setNextActionReviewers(
   const existingLabels = payload.issue?.labels || payload.pull_request?.labels;
   await nextActionReviewers(pullNumber, existingLabels);
   let prState = await stateClient.getPrState(pullNumber);
-  prState.nextAction = reviewerAction;
+  prState.nextAction = REVIEWERS_ACTION;
   await stateClient.writePrState(pullNumber, prState);
 }
 

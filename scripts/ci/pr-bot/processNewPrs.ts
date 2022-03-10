@@ -22,7 +22,12 @@ const commentStrings = require("./shared/commentStrings");
 const { ReviewerConfig } = require("./shared/reviewerConfig");
 const { PersistentState } = require("./shared/persistentState");
 const { Pr } = require("./shared/pr");
-const { REPO_OWNER, REPO, PATH_TO_CONFIG_FILE } = require("./shared/constants");
+const {
+  REPO_OWNER,
+  REPO,
+  PATH_TO_CONFIG_FILE,
+  REVIEWERS_ACTION,
+} = require("./shared/constants");
 import { CheckStatus } from "./shared/checks";
 
 /*
@@ -156,6 +161,7 @@ async function processPull(
     return;
   }
 
+  // If reviewers are already assigned, we just need to check if we should assign a committer.
   if (Object.keys(prState.reviewersAssignedForLabels).length > 0) {
     if (prState.committerAssigned) {
       console.log(
@@ -173,9 +179,9 @@ async function processPull(
     }
 
     for (const approver of approvers) {
-      console.log(approver);
       const labelOfReviewer = prState.getLabelForReviewer(approver);
       if (labelOfReviewer) {
+        console.log(`Assigning a committer for label ${labelOfReviewer}`);
         let reviewersState = await stateClient.getReviewersForLabelState(
           labelOfReviewer
         );
@@ -193,8 +199,7 @@ async function processPull(
           commentStrings.assignCommitter(chosenCommitter)
         );
         await github.nextActionReviewers(pull.number, pull.labels);
-        // TODO - refactor to shared constant
-        prState.nextAction = "Reviewers";
+        prState.nextAction = REVIEWERS_ACTION;
 
         // Persist state
         await stateClient.writePrState(pull.number, prState);
