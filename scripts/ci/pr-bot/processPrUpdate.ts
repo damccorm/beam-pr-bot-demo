@@ -157,7 +157,6 @@ async function processPrUpdate() {
   }
 
   switch (github.context.eventName) {
-    case "pull_request_review_comment":
     case "issue_comment":
       console.log("Processing comment event");
       if (payload.action !== "created") {
